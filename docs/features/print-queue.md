@@ -59,6 +59,9 @@ Since 1.2.6 ([#3132](https://github.com/maziggy/bambuddy/issues/3132)) each queu
 !!! info "Printed in another colour"
     When a job is sent with a spool of a different colour than the file asks for in a slot, its row says so in amber, for example `Slot 1 printed in Black (#000000), the file asks for Silver (#A4AAAC)`. The line stays on the job in **History**. This happens when no spool of that colour was loaded and the job took another spool of the same material, or when the slot was picked by hand. A similar colour doesn't count, and a colour you changed on purpose with a filament override isn't reported. To have the queue wait for a spool of the file's colour instead of using another one, turn on **Force color match**. On a job for a specific printer, the box under a slot asks for the filament of the tray you picked for it: if that tray no longer fits when the job comes up, the queue looks for that filament and waits when none is loaded. A send that goes back to the queue or fails before the print starts carries no note.
 
+!!! tip "Wait for the colour as sliced"
+    Since [#3460](https://github.com/maziggy/bambuddy/issues/3460) every slot dropdown offers the sliced file's own colour as an **As sliced** row, ahead of the printer's trays. Picking it arms **Force color match** for that slot, and the job then waits — however long it takes — until a tray is loaded with exactly the colour and filament variant the slice asked for, instead of you having to pick from whatever happens to be loaded right now. (A plain **Force color match** tick without the As sliced row keeps its previous, lighter guarantee: the queue waits for the colour only, not the variant.)
+
 ### Per-job ETA
 
 Since 1.2.6 ([#2736](https://github.com/maziggy/bambuddy/issues/2736)) a queue row shows an **ETA** beside its print duration — the clock time the job would finish if it started now, in your configured 12/24-hour format. It is a per-job answer, not a forecast of the whole queue.
@@ -150,6 +153,9 @@ You do not have to pick anything. Positions are assigned for you, preferring one
 
 !!! info "Preset match and colour match are separate judgements"
     The filament preset ID (`tray_info_idx`) names the **variant**, not an individual spool &mdash; `GFA00` is PLA Basic, `GFA01` PLA Matte, `GFA17` PLA Translucent, whatever colour the spool is. So when your slice asks for PLA Matte and exactly one Matte spool is loaded, auto-match selects it because it is the right variant, *and then still checks the colour*. If the colour differs you get the amber **Color mismatch** status on that slot rather than a green tick, and the slot stays selected so you can print anyway or pick another. Since [#2687](https://github.com/maziggy/bambuddy/issues/2687) the auto-matched and manually-picked verdicts for a given tray always agree.
+
+!!! tip "As sliced — wait for the colour the file asks for"
+    The dropdown lists the printer's trays as they are loaded *right now*. To make the job wait for a colour that isn't loaded anywhere yet, pick the **As sliced** row at the top of the dropdown instead of a tray: it carries the sliced file's own colour (and variant), turns on **Force color match** for that slot, and the queue holds the job until some tray holds exactly that filament. The slot shows a palette icon and the picker reads **As sliced** while the pick is set; unticking **Force color match** removes it again.
 
 This is the same filament mapping panel used when reprinting from Archives, including the **Mapping** button that reuses a slicer-saved AMS pick — see [Reuse the slicer's saved mapping](archiving.md#reuse-the-slicers-saved-mapping).
 
@@ -1185,6 +1191,8 @@ When using model-based assignment, you can override the filament colors and type
 3. For each slot, a dropdown shows all compatible filaments loaded across printers of the selected model
 4. Select an override to change the color or type for that slot
 5. Click the reset button to revert to the original 3MF value
+
+The dropdown also offers the sliced file's own colour as an **As sliced** row ([#3460](https://github.com/maziggy/bambuddy/issues/3460)). Picking it clears any override and arms **Force color match** for the slot, so the scheduler waits until a printer of the model actually holds the colour the slice asked for — useful when the colour is not loaded anywhere yet. The section itself stays visible even when no printer of the model has any filament loaded, because the force-colour checkbox under each slot is exactly what expresses "wait for the colours to be loaded".
 
 The scheduler uses the overridden values when matching filaments:
 
